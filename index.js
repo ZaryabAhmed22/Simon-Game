@@ -9,19 +9,29 @@ let userClickedPattern = [];
 //--Level variable, initially at zero
 let level = 0;
 
+//--Started variable to check if the game has started
+let started = false;
+
 //-----game logic >> Putting all together -----//
 
 //detecting a keypress to start the game
 $(document).on("keypress", function (e) {
-  //Updating the h1 to Level 0
-  $("h1").html(`Level ${level}`);
+  //first checking if the game has started
 
-  //calling the computer pattern function
-  nextSequence();
+  if (!started) {
+    //Updating the h1 to Level 0
+    $("h1").html(`Level ${level}`);
+
+    //calling the computer pattern function
+    nextSequence();
+  }
 });
 
 //-- Creating a function to generate computer pattern
 function nextSequence() {
+  //Once nextSequence() is triggered, reseting the userClickedPattern to an empty array ready for the next level.
+  userClickedPattern = [];
+
   let randomNumber = Math.floor(Math.random() * 4);
   let randomChosenColor = buttonColor[randomNumber];
 
@@ -53,7 +63,7 @@ $(".btn").on("click", function (e) {
   animatePress(userChosenColor);
 
   //checking answer
-  checkAnswer();
+  checkAnswer(userClickedPattern.length - 1);
 });
 
 //-- Function to generate audio on every button select
@@ -72,13 +82,59 @@ function animatePress(color) {
 }
 
 //--Function for checking the answer
-function checkAnswer() {
-  if (
-    gamePattern[gamePattern.length - 1] ===
-    userClickedPattern[userClickedPattern.length - 1]
-  ) {
+function checkAnswer(currentLevel) {
+  if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
     console.log("correct");
+    //cheching if both the arrays are equal
+    if (arrayEquals(gamePattern, userClickedPattern)) {
+      console.log("same patterns");
+      setTimeout(() => {
+        nextSequence();
+      }, 2000);
+    }
   } else {
     console.log("worog");
+
+    //playing the gameover sound
+    playSond("wrong");
+
+    //Changing the background color
+    toggleBackground();
+
+    //changing the h1;
+    $("h1").html(`Game Over, Press Any Key to Restart`);
+
+    //calling the restart function
+    startOver();
   }
+}
+
+//--Function for checking if the arrays are equal
+function arrayEquals(a, b) {
+  return (
+    Array.isArray(a) &&
+    Array.isArray(b) &&
+    a.length === b.length &&
+    a.every((val, index) => val === b[index])
+  );
+}
+
+//--Function for toggling the background on wrong answer
+function toggleBackground() {
+  $("body").addClass("game-over");
+
+  setTimeout(() => {
+    $("body").removeClass("game-over");
+  }, 200);
+}
+
+//--Function for restarting the game
+function startOver() {
+  //seting the level to zero again
+  level = 0;
+
+  //setting the game pattern to empty
+  gamePattern = [];
+
+  //userClickedPattern is automatically emptied when nextSequence is called
 }
